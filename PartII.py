@@ -31,7 +31,8 @@ from re import *   # Loads the regular expression module.
 ISA = {}
 INCLUDES = {}
 ARTICLES = {}
-ALIAS = {}
+ALIAS = {}        # For things that are same, put them in this dict and their values is the alias that
+                  # has the same meaning.
 
 def store_isa_fact(category1, category2):
     'Stores one fact of the form A BIRD IS AN ANIMAL'
@@ -115,11 +116,11 @@ def process(info) :
     result_match_object = assertion_pattern.match(info)
     if result_match_object != None :
         items = result_match_object.groups()
-        # print(items)
         store_article(items[1], items[0])
         store_article(items[3], items[2])
         items1 = get_alias(items[1])
         items3 = get_alias(items[3])
+        # Detect if these two objects have potentially same meaning.
         if not detect_loop(items1, items3):
             store_isa_fact(items1, items3)
             if items[1] != items1 or items[3] != items3:
@@ -185,12 +186,13 @@ def process(info) :
             answer_why(items[1], items[3])
         return
 
+    # Pattern that confirms the alias.
     result_match_object = confirm_pattern.match(info)
     if result_match_object != None:
         items = result_match_object.groups()
         a = get_alias(items[1])
         b = get_alias(items[3])
-        same = []
+        same = []         # List that has the things with same meaning
         for i in find_chain(b, a):
             same.append(i[0])
         same.insert(0, a)
@@ -239,12 +241,13 @@ def process(info) :
     print("I do not understand.  You entered: ")
     print(info)
 
+# Get the alias of the object, if it doesn't have alias, return ifself.
 def get_alias(item):
     if item in ALIAS.keys():
         return ALIAS[item]
     return item
 
-
+# detect if two objects are related through ISA.
 def detect_loop(a, b):
     result = False
     if b not in ISA.keys():
@@ -265,6 +268,7 @@ def answer_why(x, y):
     if isa_test1(x, y):
         print("Because you told me that.")
         return
+    # Handles the situation which objects has aliases.
     if isa_test1(newx, newy):
         if newx != x:
             print("Because {1} is another name for {0}, {2} is {3}"
@@ -330,13 +334,6 @@ def test() :
     process("A turtle is a shelled-creature.")
     process("A reptile is an animal.")
     process("An animal is a thing.")
-    # process("A being is a creature")
-    # process("A creature is an animal")
-    # process("I insist that an animal is a being")
-    # process("A creature is an organism")
-    # process("An organism is a living-thing")
-    # process("A living-thing is an organism")
-    # process("I insist that a living-thing is an organism")
 
 test()
 linneus()
